@@ -98,6 +98,25 @@ group_management() {
   esac
 }
 
+backup_directory() {
+  read -rp "Enter the full path of the directory to back up: " dirpath
+
+  if [ ! -d "$dirpath" ]; then
+    echo "❌ Directory '$dirpath' does not exist."
+    return
+  fi
+
+  backup_dir="$HOME/backups"
+  mkdir -p "$backup_dir"
+
+  timestamp=$(date +%Y%m%d_%H%M%S)
+  backup_file="$backup_dir/backup_$(basename "$dirpath")_$timestamp.tar.gz"
+
+  tar -czf "$backup_file" "$dirpath" && \
+    echo "✅ Backup completed: $backup_file" || \
+    echo "❌ Backup failed."
+}
+
 
 while true; do
   show_menu
@@ -107,7 +126,7 @@ while true; do
     2) delete_user ;;
     3) modify_user ;;
     4) group_management ;;
-    5) echo "🔧 Backup functionality coming soon..." ;;
+    5) backup_directory ;;
     6) echo "✅ Exiting. Goodbye!"; break ;;
     *) echo "❌ Invalid option. Try again." ;;
   esac
