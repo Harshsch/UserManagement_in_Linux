@@ -50,6 +50,55 @@ modify_user() {
   [ -n "$newshell" ] && chsh -s "$newshell" "${newname:-$oldname}" && echo "✅ Shell changed to '$newshell'"
 }
 
+group_management() {
+  echo "------ Group Management ------"
+  echo "1. Create a new group"
+  echo "2. Add a user to a group"
+  echo "3. Delete a group"
+  echo "4. List all groups"
+  echo "5. Go back"
+  read -rp "Choose an option [1-5]: " gchoice
+
+  case "$gchoice" in
+    1)
+      read -rp "Enter new group name: " groupname
+      if getent group "$groupname" > /dev/null; then
+        echo "❌ Group '$groupname' already exists."
+      else
+        groupadd "$groupname" && echo "✅ Group '$groupname' created."
+      fi
+      ;;
+    2)
+      read -rp "Enter username: " username
+      read -rp "Enter group name: " groupname
+      if id "$username" &>/dev/null && getent group "$groupname" > /dev/null; then
+        usermod -aG "$groupname" "$username" && echo "✅ Added '$username' to group '$groupname'."
+      else
+        echo "❌ Either user or group does not exist."
+      fi
+      ;;
+    3)
+      read -rp "Enter group name to delete: " groupname
+      if getent group "$groupname" > /dev/null; then
+        groupdel "$groupname" && echo "✅ Group '$groupname' deleted."
+      else
+        echo "❌ Group '$groupname' does not exist."
+      fi
+      ;;
+    4)
+      echo "📜 List of groups:"
+      cut -d: -f1 /etc/group
+      ;;
+    5)
+      echo "Returning to main menu..."
+      ;;
+    *)
+      echo "❌ Invalid option."
+      ;;
+  esac
+}
+
+
 while true; do
   show_menu
   read -rp "Choose an option [1-6]: " choice
@@ -57,7 +106,7 @@ while true; do
     1) add_user ;;
     2) delete_user ;;
     3) modify_user ;;
-    4) echo "🔧 Group management functionality coming soon..." ;;
+    4) group_management ;;
     5) echo "🔧 Backup functionality coming soon..." ;;
     6) echo "✅ Exiting. Goodbye!"; break ;;
     *) echo "❌ Invalid option. Try again." ;;
